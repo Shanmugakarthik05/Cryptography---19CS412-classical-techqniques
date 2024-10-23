@@ -1,17 +1,18 @@
 # Cryptography---19CS412-classical-techqniques
 ----------------------------------------------
-# Vigenere Cipher
-Vigenere Cipher using with different key values
+
+# Rail Fence Cipher
+Rail Fence Cipher using with different key values
 
 # AIM:
 
-To develop a simple C program to implement Vigenere Cipher.
+To develop a simple C program to implement Rail Fence Cipher.
 
 ## DESIGN STEPS:
 
 ### Step 1:
 
-Design of Vigenere Cipher algorithnm 
+Design of Rail Fence Cipher algorithnm 
 
 ### Step 2:
 
@@ -21,76 +22,91 @@ Implementation using C or pyhton code
 
 Testing algorithm with different key values. 
 ALGORITHM DESCRIPTION:
-The Vigenere cipher is a method of encrypting alphabetic text by using a series of different Caesar ciphers based on the letters of a keyword. It is a simple form of polyalphabetic substitution.To encrypt, a table of alphabets can be used, termed a Vigenere square, or Vigenere table. It consists of the alphabet written out 26 times in different rows, each alphabet shifted cyclically to the left compared to the previous alphabet, corresponding to the 26 possible Caesar ciphers. At different points in the encryption process, the cipher uses a different alphabet from one of the rows used. The alphabet at each point depends on a repeating keyword.
-
-
+In the rail fence cipher, the plaintext is written downwards and diagonally on successive "rails" of an imaginary fence, then moving up when we reach the bottom rail. When we reach the top rail, the message is written downwards again until the whole plaintext is written out. The message is then read off in rows.
 
 ## PROGRAM:
-## Vigenere Cipher
+## Rail Fence Cipher
 ~~~
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
-void vigenere_encrypt(const char *plaintext, const char *key, char *encrypted) {
-    int pt_len = strlen(plaintext);
-    int key_len = strlen(key);
-    int i, j;
+void encryptRailFence(char *plainText, int key, char *cipherText) {
+    int len = strlen(plainText);
+    int rail[key][len];
+    memset(rail, 0, sizeof(rail));
+    int dir_down = 0, row = 0, col = 0;
 
-    for (i = 0, j = 0; i < pt_len; i++) {
-        if (isalpha(plaintext[i])) {
-            char pt_char = toupper(plaintext[i]);
-            char key_char = toupper(key[j % key_len]);
-            encrypted[i] = ((pt_char - 'A') + (key_char - 'A')) % 26 + 'A';
-            j++;
-        } else {
-            encrypted[i] = plaintext[i];
-        }
+    for (int i = 0; i < len; i++) {
+        if (row == 0 || row == key - 1) dir_down = !dir_down;
+        rail[row][col++] = plainText[i];
+        dir_down ? row++ : row--;
     }
-    encrypted[pt_len] = '\0';
+
+    int index = 0;
+    for (int i = 0; i < key; i++)
+        for (int j = 0; j < len; j++)
+            if (rail[i][j] != 0)
+                cipherText[index++] = rail[i][j];
+
+    cipherText[index] = '\0';
 }
 
-void vigenere_decrypt(const char *encrypted, const char *key, char *decrypted) {
-    int enc_len = strlen(encrypted);
-    int key_len = strlen(key);
-    int i, j;
+void decryptRailFence(char *cipherText, int key, char *plainText) {
+    int len = strlen(cipherText);
+    int rail[key][len];
+    memset(rail, 0, sizeof(rail));
+    int dir_down, row = 0, col = 0;
 
-    for (i = 0, j = 0; i < enc_len; i++) {
-        if (isalpha(encrypted[i])) {
-            char enc_char = toupper(encrypted[i]);
-            char key_char = toupper(key[j % key_len]);
-            decrypted[i] = ((enc_char - 'A') - (key_char - 'A') + 26) % 26 + 'A';
-            j++;
-        } else {
-            decrypted[i] = encrypted[i];
-        }
+    for (int i = 0; i < len; i++) {
+        if (row == 0) dir_down = 1;
+        if (row == key - 1) dir_down = 0;
+        rail[row][col++] = 1;
+        dir_down ? row++ : row--;
     }
-    decrypted[enc_len] = '\0';
+
+    int index = 0;
+    for (int i = 0; i < key; i++)
+        for (int j = 0; j < len; j++)
+            if (rail[i][j] == 1 && index < len)
+                rail[i][j] = cipherText[index++];
+
+    dir_down = 0, row = 0, col = 0;
+    for (int i = 0; i < len; i++) {
+        if (row == 0) dir_down = 1;
+        if (row == key - 1) dir_down = 0;
+        if (rail[row][col] != 0) plainText[i] = rail[row][col++];
+        dir_down ? row++ : row--;
+    }
+
+    plainText[len] = '\0';
 }
 
 int main() {
-    char plaintext[1000], key[1000], encrypted[1000], decrypted[1000];
+    char plainText[100], cipherText[100], decryptedText[100];
+    int key;
 
-    printf("Enter the plaintext: ");
-    fgets(plaintext, sizeof(plaintext), stdin);
-    plaintext[strcspn(plaintext, "\n")] = '\0';
+    printf("Enter the plain text: ");
+    fgets(plainText, sizeof(plainText), stdin);
+    plainText[strcspn(plainText, "\n")] = '\0';
 
-    printf("Enter the key: ");
-    fgets(key, sizeof(key), stdin);
-    key[strcspn(key, "\n")] = '\0';
+    printf("Enter the key (number of rails): ");
+    scanf("%d", &key);
 
-    vigenere_encrypt(plaintext, key, encrypted);
-    printf("Encrypted message: %s\n", encrypted);
+    encryptRailFence(plainText, key, cipherText);
+    printf("Encrypted Text: %s\n", cipherText);
 
-    vigenere_decrypt(encrypted, key, decrypted);
-    printf("Decoded message: %s\n", decrypted);
+    decryptRailFence(cipherText, key, decryptedText);
+    printf("Decrypted Text: %s\n", decryptedText);
 
     return 0;
 }
 
 ~~~
 ## OUTPUT:
-![image](https://github.com/user-attachments/assets/c04c838e-c6f4-40cd-ac8d-957ea688b817)
+![image](https://github.com/user-attachments/assets/e63f695f-8e99-4212-b654-94c7cd12232f)
+
+
 ## RESULT:
 The program is executed successfully
+
 
